@@ -8,7 +8,7 @@ class Advertisement:
     def __init__(self):
         # UTC timestamp when Advertisement instance was created
         # FIXME: This solution is not accurate
-        created_at = datetime.datetime.utcnow()
+        self.created_at = datetime.datetime.utcnow()
 
 class Car:
     
