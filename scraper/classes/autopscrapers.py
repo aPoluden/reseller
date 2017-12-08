@@ -1,4 +1,8 @@
+from bs4 import BeautifulSoup
+import urllib
+
 from scraper.classes.options import AdvertOptions
+from scraper.classes.models import Advertisement
 
 class PortalScraper:
 
@@ -43,13 +47,36 @@ class AutoPCarScraper(VehicleScraper):
     def __init__(self):
         super(AutoPCarScraper, self).__init__()
 
+    def remove_spaces(self, raw): 
+        return raw.replace(' ', '').replace('\n', '')
+
     def get_car_advert_data(self, url):
         '''
-        Scrapes particular STORE car advertisementnoi
-        returns: STORE car advertisement data
+        Scrapes AutoP store car advertisement
+        returns: advertisement data
         '''
-        return 'test'
-
+        advert, seller, vehicle = {}, {}, {}
+        resource = urllib.request.urlopen(url).read()
+        soup = BeautifulSoup(resource, 'html.parser')
+        element = soup.find_all(class_='add-to-bookmark')[0]
+        advert_info = soup.find_all(class_='classifieds-info')[0]
+        vehicle_specs = advert_info.find_all(class_='announcement-parameters')
+        advert['uid'] = element.attrs['data-id']
+        advert['name'] = advert_info.h1.text
+        advert['comment'] = advert_info.find(class_='announcement-description').text
+        advert['location'] = self.remove_spaces(soup.find(class_='owner-location').text)
+        seller['number'] = self.remove_spaces(soup.find(class_="announcement-owner-contacts").a.text)
+        for param in vehicle_specs:
+            # Vehicle specials
+            param_rows = param.find_all('tr')
+            for row in param_rows:
+                spec_name = row.th.text
+                spec_value = row.td.text
+                if spec_name == 'Kaina Lietuvoje': 
+                    advert['price'] = spec_value
+                vehicle[spec_name] = spec_value
+        return {'vehicle': vehicle, 'advert': advert, 'seller': seller}
+        
     def get_all_car_adverts_data(self):
         '''extends arrow
         Scrapes all STORE car advertisements

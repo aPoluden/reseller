@@ -25,12 +25,20 @@ class AutoPScraperTest(TestCase):
 
     def test_particular_car_advert_scrape(self):
         '''
-        Test paricular car advetisement scrape
+        Tests paricular car advetisement scrape
         '''
         self.scraper.set_autop(AdvertOptions.CARS)
         # TODO FIX IT 
         url = 'file:///home/apoluden/Programming/workspace/reseller/scraper/tests/bmw_advertisement.html'
         scraped_advert = self.scraper.scrape_particular_advert(url)
+        vehicle = scraped_advert['vehicle']
+        advert = scraped_advert['advert']
+        seller = scraped_advert['seller']
+        self.assertEquals('+37069157207', seller['number'])
+        self.assertEquals('5004458', advert['uid'])
+        self.assertEquals('Panevėžys,Lietuva', advert['location'])
+        self.assertEquals('10 900 €', advert['price'])
+        self.assertEquals('BMW 520, 2.0 l., universalas', advert['name'])
 
 class AdvertisementTest(TestCase):
     
