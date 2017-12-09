@@ -15,15 +15,18 @@ class Scraper:
         '''
         self.scraper = AutoPScraper(advert_type)
 
-    def scrape_particular_advert(self, advert_url):
+    def scrape_particular_advert(self, advert_url, path=None):
         '''
         Scrapes Portal particular adverisement URL
         returns: scraped advertisement data
         '''
-        return self.scraper.scrape_particular_advert(advert_url)
+        return self.scraper.scrape_particular_advert(advert_url, path)
  
     def scrape_entire_adverts(self):
-        pass
+        '''
+        Write description
+        '''
+        return self.scraper.scrape_entire_adverts()
 
     def type(self):
         '''

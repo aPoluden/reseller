@@ -28,9 +28,9 @@ class AutoPScraperTest(TestCase):
         Tests paricular car advetisement scrape
         '''
         self.scraper.set_autop(AdvertOptions.CARS)
-        # TODO FIX IT 
+        # TODO FIX IT USE PYTHONPATH
         url = 'file:///home/apoluden/Programming/workspace/reseller/scraper/tests/bmw_advertisement.html'
-        scraped_advert = self.scraper.scrape_particular_advert(url)
+        scraped_advert = self.scraper.scrape_particular_advert(None, path=url)
         vehicle = scraped_advert['vehicle']
         advert = scraped_advert['advert']
         seller = scraped_advert['seller']
@@ -39,6 +39,28 @@ class AutoPScraperTest(TestCase):
         self.assertEquals('Panevėžys,Lietuva', advert['location'])
         self.assertEquals('10 900 €', advert['price'])
         self.assertEquals('BMW 520, 2.0 l., universalas', advert['name'])
+
+    def test_entire_car_advert_scrape(self): 
+        '''
+        Tests all available car advert scraping
+        '''
+        generator = self.scraper.scrape_entire_adverts()
+        for i in range(21):
+            print(next(generator))
+    
+    def test_particular_car_advert_scrape_url_unreachable(self):
+        '''
+        Test particular advert scrape when URL unreachable/not exists/ip blocked
+        '''
+        #  TODO
+        pass
+
+    def test_entire_car_scrape_url_unreachable(self):
+        '''
+        Test entrire adverts scrape when URL unreachable/not exists/ip blocked
+        '''
+        # TODO
+        pass
 
 class AdvertisementTest(TestCase):
     
