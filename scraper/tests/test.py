@@ -3,7 +3,7 @@ import datetime
 
 from scraper.scraper import Scraper
 from scraper.classes.options import AdvertOptions
-from scraper.classes.autopscrapers import AutoPScraper
+from scraper.classes.autopscrapers import AutoPScraper, AutoPCarScraper
 from scraper.classes.models import Advertisement
 
 class ScraperTest(TestCase):
@@ -45,15 +45,18 @@ class AutoPScraperTest(TestCase):
         Tests all available car advert scraping
         '''
         generator = self.scraper.scrape_entire_adverts()
-        for i in range(21):
+        while True:
             print(next(generator))
-    
-    def test_particular_car_advert_scrape_url_unreachable(self):
+
+    def test_bad_webpage_url_or_path(self):
         '''
-        Test particular advert scrape when URL unreachable/not exists/ip blocked
+        Tests wrong URL or path
         '''
-        #  TODO
-        pass
+        wrong_path = 'file://wrong/path'
+        wrong_url = 'http://wrong.url'
+        scraper = AutoPCarScraper()
+        self.assertIsNone(scraper.page_content(wrong_url))
+        self.assertIsNone(scraper.page_content(None, wrong_path))
 
     def test_entire_car_scrape_url_unreachable(self):
         '''

@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import urllib, requests
+from requests.exceptions import ConnectionError, TooManyRedirects, Timeout, RequestException
 
 from scraper.classes.options import AdvertOptions
 from scraper.classes.models import Advertisement
@@ -50,18 +51,47 @@ class AutoPCarScraper(VehicleScraper):
     def remove_spaces(self, raw): 
         return raw.replace(' ', '').replace('\n', '')
 
+    def page_content(self, page_url, page_path=None):
+        '''
+        Returns WEB page HTML content
+        params:
+            page_url - web page resource url
+            page_path - web page resource path
+        returns:
+            HTML content
+        '''
+        content = None
+        try:
+            if page_path:
+                content = urllib.request.urlopen(page_path).read()
+            else:
+                content = requests.get(page_url).content
+                resp = requests.get(page_url)
+                if resp.status_code == 443 or resp.status_code == 429: 
+                    # Dude Ur in blacklist
+                    print('NOT WELCOME')
+                    # TODO TOR
+                    # TODO Logging
+                content = resp.content
+        except requests.exceptions.Timeout:
+            print('Timeout')
+        except requests.exceptions.TooManyRedirects:
+            print('TooManyRedirects')
+        except requests.exceptions.RequestException:
+            print('RequestException')
+        except requests.exceptions.ConnectionError:
+            print('ConnectionError')
+        except urllib.error.URLError:
+            return None
+        return content
+
     def get_car_advert_data(self, url, path=None):
         '''
         Scrapes AutoP store car advertisement
         returns: advertisement data
         '''
         advert, seller, vehicle = {}, {}, {}
-        resource = None
-        if path:
-            resource = urllib.request.urlopen(path).read()
-        else:
-            resource = requests.get(url).content
-        soup = BeautifulSoup(resource, 'html.parser')
+        soup = BeautifulSoup(self.page_content(url, path), 'html.parser')
         element = soup.find_all(class_='add-to-bookmark')[0]
         advert_info = soup.find_all(class_='classifieds-info')[0]
         vehicle_specs = advert_info.find_all(class_='announcement-parameters')
@@ -91,13 +121,14 @@ class AutoPCarScraper(VehicleScraper):
         Scrapes all STORE car advertisements
         returns: all STORE car advertisements 
         '''
+        soup = None
         current_page = 1
         url='https://autoplius.lt/skelbimai/naudoti-automobiliai'
         list_page = '/skelbimai/naudoti-automobiliai?page_nr={}'
         while True:
             list_url = url + list_page.format(current_page)
-            resource = requests.get(list_url).content
-            soup = BeautifulSoup(resource, 'html.parser')
+            content = self.page_content(list_url)
+            soup = BeautifulSoup(content, 'html.parser')
             adverts_list = soup.find_all(class_='announcement-item')
             for advert in adverts_list:
                 advert_url = advert['href']
