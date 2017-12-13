@@ -1,9 +1,18 @@
 from bs4 import BeautifulSoup
-import urllib, requests
+import urllib, requests, logging
 from requests.exceptions import ConnectionError, TooManyRedirects, Timeout, RequestException
 
 from scraper.classes.options import AdvertOptions
 from scraper.classes.models import Advertisement
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# handler = logging.RotatingFileHandler('hello.log')
+# handler.setLevel(logging.INFO)
+# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# handler.setFormatter(formatter)
+# logger.addHandler(handler)
 
 class PortalScraper:
 
@@ -37,20 +46,6 @@ class AutoPScraper(PortalScraper):
 
 class VehicleScraper:
     
-    def get_particular_vehicle(self, url, path=None):
-        pass
-    
-    def get_entire_vehicles(self): 
-        pass
-
-class AutoPCarScraper(VehicleScraper):
-    
-    def __init__(self):
-        super(AutoPCarScraper, self).__init__()
-
-    def remove_spaces(self, raw): 
-        return raw.replace(' ', '').replace('\n', '')
-
     def page_content(self, page_url, page_path=None):
         '''
         Returns WEB page HTML content
@@ -68,22 +63,34 @@ class AutoPCarScraper(VehicleScraper):
                 content = requests.get(page_url).content
                 resp = requests.get(page_url)
                 if resp.status_code == 443 or resp.status_code == 429: 
-                    # Dude Ur in blacklist
-                    print('NOT WELCOME')
+                    logger.warn('Blacklisted')
                     # TODO TOR
-                    # TODO Logging
                 content = resp.content
         except requests.exceptions.Timeout:
-            print('Timeout')
-        except requests.exceptions.TooManyRedirects:
-            print('TooManyRedirects')
-        except requests.exceptions.RequestException:
-            print('RequestException')
-        except requests.exceptions.ConnectionError:
-            print('ConnectionError')
+            logger.error('Timeout')
+        except TooManyRedirects:
+            logger.error('Too many redirects')
+        except RequestException:
+            logger.error('Request Exception')
+        except ConnectionError:
+            logger.error('Connection Error')
         except urllib.error.URLError:
-            return None
+            logger.error('URL Error')
         return content
+
+    def get_particular_vehicle(self, url, path=None):
+        pass
+    
+    def get_entire_vehicles(self): 
+        pass
+
+class AutoPCarScraper(VehicleScraper):
+    
+    def __init__(self):
+        super(AutoPCarScraper, self).__init__()
+
+    def remove_spaces(self, raw): 
+        return raw.replace(' ', '').replace('\n', '')
 
     def get_car_advert_data(self, url, path=None):
         '''
@@ -91,6 +98,10 @@ class AutoPCarScraper(VehicleScraper):
         returns: advertisement data
         '''
         advert, seller, vehicle = {}, {}, {}
+        content = self.page_content(url, path)
+        if content is None:
+            logger.warn('Advert %s not reachable', url)
+            return None
         soup = BeautifulSoup(self.page_content(url, path), 'html.parser')
         element = soup.find_all(class_='add-to-bookmark')[0]
         advert_info = soup.find_all(class_='classifieds-info')[0]
@@ -112,7 +123,6 @@ class AutoPCarScraper(VehicleScraper):
             # Advert attributes that could be not defined
             advert['comment'] = advert_info.find(class_='announcement-description').text
         except AttributeError as e:
-            # TODO Logging
             pass
         return {'vehicle': vehicle, 'advert': advert, 'seller': seller}
         
@@ -128,6 +138,9 @@ class AutoPCarScraper(VehicleScraper):
         while True:
             list_url = url + list_page.format(current_page)
             content = self.page_content(list_url)
+            if content is None:
+                logger.warn('Advert list %s not reachable')
+                yield None
             soup = BeautifulSoup(content, 'html.parser')
             adverts_list = soup.find_all(class_='announcement-item')
             for advert in adverts_list:

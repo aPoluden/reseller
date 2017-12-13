@@ -40,14 +40,6 @@ class AutoPScraperTest(TestCase):
         self.assertEquals('10 900 €', advert['price'])
         self.assertEquals('BMW 520, 2.0 l., universalas', advert['name'])
 
-    def test_entire_car_advert_scrape(self): 
-        '''
-        Tests all available car advert scraping
-        '''
-        generator = self.scraper.scrape_entire_adverts()
-        while True:
-            print(next(generator))
-
     def test_bad_webpage_url_or_path(self):
         '''
         Tests wrong URL or path
@@ -57,13 +49,6 @@ class AutoPScraperTest(TestCase):
         scraper = AutoPCarScraper()
         self.assertIsNone(scraper.page_content(wrong_url))
         self.assertIsNone(scraper.page_content(None, wrong_path))
-
-    def test_entire_car_scrape_url_unreachable(self):
-        '''
-        Test entrire adverts scrape when URL unreachable/not exists/ip blocked
-        '''
-        # TODO
-        pass
 
 class AdvertisementTest(TestCase):
     
