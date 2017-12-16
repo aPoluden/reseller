@@ -60,6 +60,10 @@ class VehicleScraper:
             if page_path:
                 content = urllib.request.urlopen(page_path).read()
             else:
+                headers = requests.utils.default_headers()
+                headers.update({
+                    'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0',
+                })
                 content = requests.get(page_url).content
                 resp = requests.get(page_url)
                 if resp.status_code == 443 or resp.status_code == 429: 
