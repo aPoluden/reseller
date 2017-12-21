@@ -5,7 +5,7 @@ class Scraper:
     Entrypoint
     '''
     def __init__(self):
-        pass
+        self.scraper = None
 
     def set_autop(self, advert_type):
         '''
